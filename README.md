@@ -11,6 +11,12 @@ Verified here: `npm run typecheck` and `npm run build` pass, and the three migra
 parent sees messages only after coach approval, outsider sees nothing).
 **Not verified:** real Supabase (`supabase start`), real SMS delivery, and the UI in a browser.
 
+Migrations: `supabase/migrations` mirrors the live project. `0004b` and `0010a` reconstruct changes that were
+made on the live project by hand; they are already in effect there and exist so a fresh database
+(`supabase db reset`) ends up the same. `0011` (security hardening) is applied to the live project.
+This project uses Supabase's newer defaults, where new tables get no select/insert/update/delete for
+`anon`/`authenticated`: every new table needs explicit grants next to its RLS policies (see `0011`).
+
 First run:
 
 ```bash
