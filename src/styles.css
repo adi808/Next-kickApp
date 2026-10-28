@@ -42,3 +42,31 @@ input {
 }
 .shell nav button { flex: 1; background: #fff; color: var(--green); border: 1px solid var(--green); }
 .shell nav button[aria-current='true'] { background: var(--green); color: #fff; }
+.shell header a { color: #fff; text-decoration: none; }
+.cards { list-style: none; padding: 0; margin: 0; display: grid; gap: 0.5rem; }
+.cards a {
+  display: flex; flex-wrap: wrap; gap: 0.25rem 0.75rem; align-items: center; padding: 0.75rem 1rem;
+  border: 1px solid #c9d8cf; border-radius: 8px; color: inherit; text-decoration: none;
+}
+.cards a strong { flex-basis: 100%; }
+.badge { background: var(--green-light); color: var(--green); border-radius: 999px; padding: 0 0.5rem; font-size: 0.85rem; }
+.transport { margin-top: 1.5rem; border-top: 1px solid #c9d8cf; padding-top: 0.5rem; }
+.transport h4 { margin: 1.25rem 0 0.25rem; }
+.switch { display: flex; gap: 0.5rem; align-items: center; min-height: 44px; }
+.switch input { width: 1.25rem; height: 1.25rem; min-height: 0; margin: 0; }
+.total {
+  display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.5rem; padding: 0.75rem 1rem;
+  background: var(--green-light); border-radius: 8px;
+}
+.total strong { font-size: 2rem; color: var(--green); }
+.total small { flex-basis: 100%; }
+.hint, .muted { color: #5a6b61; font-size: 0.9rem; }
+.seats { list-style: none; padding: 0; margin: 0; }
+.seats li {
+  display: flex; align-items: center; justify-content: space-between; gap: 0.5rem;
+  padding: 0.25rem 0; border-bottom: 1px solid #edf2ef; min-height: 52px;
+}
+.seats .who small { color: #5a6b61; }
+.stepper { display: inline-flex; align-items: center; gap: 0.25rem; }
+.stepper button { width: 44px; padding: 0; font-size: 1.25rem; }
+.stepper output { min-width: 2ch; text-align: center; font-weight: 600; }

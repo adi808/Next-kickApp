@@ -1,5 +1,8 @@
 import { useState } from 'react';
+import { Link, Route, Routes } from 'react-router-dom';
 import { useAuth } from '../auth/AuthProvider';
+import Events from '../pages/Events';
+import EventPage from '../pages/EventPage';
 import { ROLE_LABELS, type AppRole } from '../lib/types';
 
 const SECTIONS: Record<AppRole, string> = {
@@ -16,23 +19,33 @@ export default function RoleShell() {
   return (
     <div className="shell">
       <header>
-        <strong>Next Team</strong>
+        <Link to="/"><strong>Next Team</strong></Link>
+        <Link to="/events">אירועים</Link>
         <span>{profile?.full_name || profile?.phone}</span>
         <button className="link" onClick={signOut}>יציאה</button>
       </header>
 
       <main>
-        {roles.length === 0 ? (
-          <p>
-            עדיין אין לכם שיוך למועדון או לקבוצה. בקשו ממנהל המועדון או מהמאמן להזמין
-            אתכם לפי מספר הטלפון.
-          </p>
-        ) : (
-          <>
-            <h2>{active ? ROLE_LABELS[active] : ''}</h2>
-            <p>{active ? SECTIONS[active] : ''} – בקרוב (שלב C2).</p>
-          </>
-        )}
+        <Routes>
+          <Route path="events" element={<Events />} />
+          <Route path="events/:id" element={<EventPage />} />
+          <Route
+            path="*"
+            element={
+              roles.length === 0 ? (
+                <p>
+                  עדיין אין לכם שיוך למועדון או לקבוצה. בקשו ממנהל המועדון או מהמאמן להזמין
+                  אתכם לפי מספר הטלפון.
+                </p>
+              ) : (
+                <>
+                  <h2>{active ? ROLE_LABELS[active] : ''}</h2>
+                  <p>{active ? SECTIONS[active] : ''} – בקרוב (שלב C2).</p>
+                </>
+              )
+            }
+          />
+        </Routes>
       </main>
 
       {roles.length > 1 && (
