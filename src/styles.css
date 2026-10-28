@@ -70,3 +70,5 @@ input {
 .stepper { display: inline-flex; align-items: center; gap: 0.25rem; }
 .stepper button { width: 44px; padding: 0; font-size: 1.25rem; }
 .stepper output { min-width: 2ch; text-align: center; font-weight: 600; }
+.login button.google { background: #fff; color: var(--text); border: 1px solid #9bb3a5; width: 100%; }
+.login .or { text-align: center; color: #5a6b61; margin: 1.25rem 0 0.5rem; }

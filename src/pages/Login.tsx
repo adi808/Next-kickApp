@@ -1,9 +1,10 @@
 import { useState, type FormEvent } from 'react';
 import { supabase } from '../lib/supabase';
-import { toE164 } from '../lib/phone';
+
+const EMAIL_RE = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
 
 export default function Login() {
-  const [phone, setPhone] = useState('');
+  const [email, setEmail] = useState('');
   const [code, setCode] = useState('');
   const [sentTo, setSentTo] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -11,14 +12,14 @@ export default function Login() {
 
   async function sendCode(e: FormEvent) {
     e.preventDefault();
-    const e164 = toE164(phone);
-    if (!e164) return setError('מספר טלפון לא תקין');
+    const address = email.trim().toLowerCase();
+    if (!EMAIL_RE.test(address)) return setError('כתובת אימייל לא תקינה');
     setBusy(true);
     setError(null);
-    const { error: err } = await supabase.auth.signInWithOtp({ phone: e164 });
+    const { error: err } = await supabase.auth.signInWithOtp({ email: address });
     setBusy(false);
-    if (err) return setError('שליחת הקוד נכשלה. נסו שוב.');
-    setSentTo(e164);
+    if (err) return setError('שליחת הקוד נכשלה. נסו שוב בעוד דקה.');
+    setSentTo(address);
   }
 
   async function verify(e: FormEvent) {
@@ -27,32 +28,47 @@ export default function Login() {
     setBusy(true);
     setError(null);
     const { error: err } = await supabase.auth.verifyOtp({
-      phone: sentTo,
+      email: sentTo,
       token: code.trim(),
-      type: 'sms',
+      type: 'email',
     });
     setBusy(false);
     if (err) setError('הקוד שגוי או שפג תוקפו');
+  }
+
+  async function google() {
+    setError(null);
+    const { error: err } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: { redirectTo: window.location.origin },
+    });
+    if (err) setError('הכניסה עם Google נכשלה');
   }
 
   return (
     <main className="login">
       <h1>Next Team</h1>
       {!sentTo ? (
-        <form onSubmit={sendCode}>
-          <label htmlFor="phone">מספר טלפון</label>
-          <input
-            id="phone"
-            type="tel"
-            inputMode="tel"
-            autoComplete="tel"
-            dir="ltr"
-            placeholder="050-0000000"
-            value={phone}
-            onChange={(e) => setPhone(e.target.value)}
-          />
-          <button disabled={busy}>שלחו לי קוד</button>
-        </form>
+        <>
+          <button type="button" className="google" onClick={google}>
+            כניסה עם Google
+          </button>
+          <p className="or">או קוד לאימייל</p>
+          <form onSubmit={sendCode}>
+            <label htmlFor="email">אימייל</label>
+            <input
+              id="email"
+              type="email"
+              inputMode="email"
+              autoComplete="email"
+              dir="ltr"
+              placeholder="name@example.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+            />
+            <button disabled={busy}>שלחו לי קוד</button>
+          </form>
+        </>
       ) : (
         <form onSubmit={verify}>
           <label htmlFor="code">הקוד שנשלח אל {sentTo}</label>
@@ -61,13 +77,13 @@ export default function Login() {
             inputMode="numeric"
             autoComplete="one-time-code"
             dir="ltr"
-            maxLength={6}
+            maxLength={10}
             value={code}
             onChange={(e) => setCode(e.target.value)}
           />
           <button disabled={busy}>כניסה</button>
           <button type="button" className="link" onClick={() => setSentTo(null)}>
-            החלפת מספר
+            החלפת אימייל
           </button>
         </form>
       )}

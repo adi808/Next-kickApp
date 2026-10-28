@@ -21,7 +21,7 @@ export default function RoleShell() {
       <header>
         <Link to="/"><strong>Next Team</strong></Link>
         <Link to="/events">אירועים</Link>
-        <span>{profile?.full_name || profile?.phone}</span>
+        <span>{profile?.full_name || profile?.email}</span>
         <button className="link" onClick={signOut}>יציאה</button>
       </header>
 

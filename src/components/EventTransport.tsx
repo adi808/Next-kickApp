@@ -13,6 +13,7 @@ interface Entry {
   profileId: string | null;
   name: string;
   role: TransportRow['role'];
+  staffLabel: string | null;
   seats: number | null;
   editable: boolean;
   absent: boolean;
@@ -48,7 +49,8 @@ async function load(event: EventRow, uid: string): Promise<Loaded> {
   for (const r of rows) {
     const key = keyOf(r.player_id, r.profile_id);
     entries.set(key, {
-      key, playerId: r.player_id, profileId: r.profile_id, name: r.name, role: r.role, seats: r.seats,
+      key, playerId: r.player_id, profileId: r.profile_id, name: r.name, role: r.role, staffLabel: r.staff_label,
+      seats: r.seats,
       editable: canManage || (r.player_id ? myKids.has(r.player_id) : r.profile_id === uid),
       absent: false,
     });
@@ -61,7 +63,8 @@ async function load(event: EventRow, uid: string): Promise<Loaded> {
     const { data } = await supabase.from('v_players').select('id, full_name').in('id', unanswered);
     for (const p of (data as { id: string; full_name: string }[] | null) ?? []) {
       entries.set(keyOf(p.id, null), {
-        key: keyOf(p.id, null), playerId: p.id, profileId: null, name: p.full_name, role: 'player', seats: null,
+        key: keyOf(p.id, null), playerId: p.id, profileId: null, name: p.full_name, role: 'player', staffLabel: null,
+        seats: null,
         editable: true, absent: absent.has(p.id),
       });
     }
@@ -72,17 +75,22 @@ async function load(event: EventRow, uid: string): Promise<Loaded> {
     const { data: team } = await supabase.from('teams').select('club_id').eq('id', event.team_id).single();
     const { data } = await supabase
       .from('memberships')
-      .select('user_id, role, profile:profiles(full_name)')
+      .select('user_id, role, profile:profiles(full_name, email), staff:lookups(name_he)')
       .or(`and(team_id.eq.${event.team_id},role.eq.coach),and(club_id.eq.${team?.club_id},role.eq.club_admin)`);
-    const staff = (data as unknown as { user_id: string; role: 'coach' | 'club_admin'; profile: { full_name: string } | null }[] | null) ?? [];
+    const staff = (data as unknown as {
+      user_id: string;
+      role: 'coach' | 'club_admin';
+      profile: { full_name: string; email: string | null } | null;
+      staff: { name_he: string } | null;
+    }[] | null) ?? [];
     // A coach of this team is listed as coach even if they are also a club admin.
     staff.sort((a, b) => (a.role === 'coach' ? -1 : 0) - (b.role === 'coach' ? -1 : 0));
     for (const m of staff) {
       const key = keyOf(null, m.user_id);
       if (entries.has(key)) continue;
       entries.set(key, {
-        key, playerId: null, profileId: m.user_id, name: m.profile?.full_name || 'איש צוות', role: m.role,
-        seats: null, editable: true, absent: false,
+        key, playerId: null, profileId: m.user_id, name: m.profile?.full_name || m.profile?.email || 'איש צוות',
+        role: m.role, staffLabel: m.staff?.name_he ?? null, seats: null, editable: true, absent: false,
       });
     }
   }
@@ -205,7 +213,7 @@ function EntryList({
           <li key={e.key}>
             <span className="who">
               {e.name}
-              {e.role !== 'player' && <small> · {ROLE_LABELS[e.role]}</small>}
+              {e.role !== 'player' && <small> · {e.staffLabel ?? ROLE_LABELS[e.role]}</small>}
             </span>
             {e.absent ? (
               <span className="muted">לא מגיע</span>

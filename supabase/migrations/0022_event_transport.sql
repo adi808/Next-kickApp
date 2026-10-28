@@ -89,10 +89,11 @@ end $$;
 
 -- Breakdown for the event: one row per player or staff member who answered, still on the team.
 -- Players marked not attending are left out (their row is cleared anyway, see the trigger below).
+-- staff_label is the staff type on the team membership (e.g. מנהל קבוצה, see 0020d/0021), if one is set.
 create function event_transport_list(p_event uuid)
-returns table (player_id uuid, profile_id uuid, name text, role text, seats int)
+returns table (player_id uuid, profile_id uuid, name text, role text, staff_label text, seats int)
 language sql stable security definer set search_path = public as $$
-  select t.player_id, null::uuid, p.full_name, 'player', t.seats
+  select t.player_id, null::uuid, p.full_name, 'player', null::text, t.seats
   from event_transport t
   join events e on e.id = t.event_id
   join players p on p.id = t.player_id
@@ -101,14 +102,13 @@ language sql stable security definer set search_path = public as $$
     and not exists (select 1 from event_responses r
                     where r.event_id = t.event_id and r.player_id = t.player_id and r.status = 'not_attending')
   union all
-  select null::uuid, t.profile_id, pr.full_name,
-         case when exists (select 1 from memberships m
-                           where m.user_id = t.profile_id and m.team_id = e.team_id and m.role = 'coach')
-              then 'coach' else 'club_admin' end,
-         t.seats
+  select null::uuid, t.profile_id, coalesce(nullif(pr.full_name, ''), pr.email, ''),
+         case when tm.id is not null then 'coach' else 'club_admin' end, l.name_he, t.seats
   from event_transport t
   join events e on e.id = t.event_id
   join profiles pr on pr.id = t.profile_id
+  left join memberships tm on tm.user_id = t.profile_id and tm.team_id = e.team_id and tm.role = 'coach'
+  left join lookups l on l.id = tm.staff_role_id
   where t.event_id = p_event and is_team_member(e.team_id) and is_team_staff(e.team_id, t.profile_id)
   order by 4 desc, 3
 $$;
