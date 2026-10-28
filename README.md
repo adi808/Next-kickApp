@@ -16,6 +16,13 @@ made on the live project by hand; they are already in effect there and exist so 
 (`supabase db reset`) ends up the same. `0011` (security hardening) is applied to the live project.
 This project uses Supabase's newer defaults, where new tables get no select/insert/update/delete for
 `anon`/`authenticated`: every new table needs explicit grants next to its RLS policies (see `0011`).
+`0012` (event transport) is not yet applied to the live project.
+
+Event transport (`0012`): the coach or club admin turns transport on for an event (`set_event_transport`).
+A parent then sets the seats for their child, counting the child and anyone travelling with them (0 = no ride);
+staff set their own seats, and staff can set or correct any row (`set_transport_seats`). Players cannot set seats.
+`event_transport_list` gives the breakdown and `event_transport_total` the total, to any team member.
+A player answered "not attending" loses their row and cannot be given seats.
 
 First run:
 

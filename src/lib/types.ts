@@ -28,3 +28,13 @@ export interface Sport {
   icon_path: string;
   sort_order: number;
 }
+
+// One row of event_transport_list(): a player (seats include anyone travelling with them, 0 = no ride)
+// or a staff member. The total is event_transport_total(), or the sum of these rows.
+export interface TransportRow {
+  player_id: string | null;
+  profile_id: string | null;
+  name: string;
+  role: 'player' | 'coach' | 'club_admin';
+  seats: number;
+}
