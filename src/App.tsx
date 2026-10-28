@@ -1,17 +1,13 @@
-import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
+import { BrowserRouter } from 'react-router-dom';
 import { AuthProvider, useAuth } from './auth/AuthProvider';
 import Login from './pages/Login';
 import RoleShell from './components/RoleShell';
 
+// Signed out, every address shows the login, and after signing in the same address opens (e.g. a join link).
 function Gate() {
   const { loading, session } = useAuth();
   if (loading) return <p className="center">טוען…</p>;
-  return (
-    <Routes>
-      <Route path="/login" element={session ? <Navigate to="/" replace /> : <Login />} />
-      <Route path="/*" element={session ? <RoleShell /> : <Navigate to="/login" replace />} />
-    </Routes>
-  );
+  return session ? <RoleShell /> : <Login />;
 }
 
 export default function App() {

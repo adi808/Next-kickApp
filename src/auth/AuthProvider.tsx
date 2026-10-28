@@ -10,6 +10,7 @@ interface AuthState {
   memberships: Membership[];
   roles: AppRole[];
   signOut: () => Promise<void>;
+  refresh: () => void;
 }
 
 const AuthContext = createContext<AuthState | null>(null);
@@ -19,6 +20,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [memberships, setMemberships] = useState<Membership[]>([]);
+  const [version, setVersion] = useState(0);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
@@ -40,10 +42,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (!userId) return;
     let cancelled = false;
-    setLoading(true);
+    if (version === 0) setLoading(true);
     Promise.all([
       supabase.from('profiles').select('*').eq('id', userId).single(),
-      supabase.from('memberships').select('id, club_id, team_id, role').eq('user_id', userId),
+      supabase.from('memberships').select('id, club_id, team_id, role, staff_role_id').eq('user_id', userId),
     ]).then(([p, m]) => {
       if (cancelled) return;
       setProfile((p.data as Profile | null) ?? null);
@@ -53,7 +55,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => {
       cancelled = true;
     };
-  }, [userId]);
+  }, [userId, version]);
 
   const roles = [...new Set(memberships.map((m) => m.role))];
 
@@ -68,6 +70,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         signOut: async () => {
           await supabase.auth.signOut();
         },
+        refresh: () => setVersion((v) => v + 1),
       }}
     >
       {children}

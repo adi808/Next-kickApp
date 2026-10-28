@@ -16,7 +16,11 @@ export default function Login() {
     if (!EMAIL_RE.test(address)) return setError('כתובת אימייל לא תקינה');
     setBusy(true);
     setError(null);
-    const { error: err } = await supabase.auth.signInWithOtp({ email: address });
+    // The email has a sign-in link, and a code too when the Supabase email template includes {{ .Token }}.
+    const { error: err } = await supabase.auth.signInWithOtp({
+      email: address,
+      options: { emailRedirectTo: window.location.href },
+    });
     setBusy(false);
     if (err) return setError('שליחת הקוד נכשלה. נסו שוב בעוד דקה.');
     setSentTo(address);
@@ -40,7 +44,7 @@ export default function Login() {
     setError(null);
     const { error: err } = await supabase.auth.signInWithOAuth({
       provider: 'google',
-      options: { redirectTo: window.location.origin },
+      options: { redirectTo: window.location.href },
     });
     if (err) setError('הכניסה עם Google נכשלה');
   }
@@ -48,6 +52,9 @@ export default function Login() {
   return (
     <main className="login">
       <h1>Next Team</h1>
+      {window.location.pathname.startsWith('/join/') && (
+        <p className="hint center-text">כדי להצטרף לקבוצה, היכנסו קודם עם Google או עם קוד לאימייל.</p>
+      )}
       {!sentTo ? (
         <>
           <button type="button" className="google" onClick={google}>
@@ -71,7 +78,8 @@ export default function Login() {
         </>
       ) : (
         <form onSubmit={verify}>
-          <label htmlFor="code">הקוד שנשלח אל {sentTo}</label>
+          <p>שלחנו אימייל אל <span dir="ltr">{sentTo}</span>. לחצו על הקישור שבו, או הקלידו כאן את הקוד.</p>
+          <label htmlFor="code">קוד מהאימייל</label>
           <input
             id="code"
             inputMode="numeric"

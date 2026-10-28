@@ -6,6 +6,8 @@ export interface Profile {
   email: string | null;
   full_name: string;
   is_system_admin: boolean;
+  avatar_path: string | null;
+  can_drive: boolean;
 }
 
 export interface Membership {
@@ -13,6 +15,7 @@ export interface Membership {
   club_id: string;
   team_id: string | null;
   role: AppRole;
+  staff_role_id: string | null;
 }
 
 export const ROLE_LABELS: Record<AppRole, string> = {

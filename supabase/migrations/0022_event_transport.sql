@@ -135,3 +135,5 @@ revoke execute on function is_team_staff(uuid, uuid), set_event_transport(uuid, 
   clear_transport_on_absence() from public, anon;
 grant execute on function set_event_transport(uuid, boolean), set_transport_seats(uuid, int, uuid, uuid),
   event_transport_list(uuid), event_transport_total(uuid) to authenticated;
+-- Supabase also grants new functions to authenticated directly; these are internal.
+revoke execute on function is_team_staff(uuid, uuid), clear_transport_on_absence() from authenticated;
